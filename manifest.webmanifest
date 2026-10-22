@@ -1,11 +1,11 @@
 {
- "name": "Reposiciones Llahuen",
- "short_name": "Reposiciones",
+ "name": "Reposiciones Agrícola Llahuen",
+ "short_name": "Reposiciones Agrícola Llahuen",
  "lang": "es-CL",
  "start_url": "./",
  "scope": "./",
  "display": "standalone",
- "background_color": "#EDF0EA",
+ "background_color": "#FFFFFF",
  "theme_color": "#2A6846",
  "icons": [
   {

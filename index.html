@@ -5,11 +5,12 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
-<meta name="apple-mobile-web-app-title" content="Reposiciones">
+<meta name="apple-mobile-web-app-title" content="Reposiciones Agrícola Llahuen">
+<meta name="application-name" content="Reposiciones Agrícola Llahuen">
 <style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
 <script src="config.js"></script>
 </head><body>
-<title>Reposiciones Llahuen</title>
+<title>Reposiciones Agrícola Llahuen</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -316,12 +317,7 @@ const FOTOPER = {
 const MOTIVOS = ["Mortalidad / prendimiento", "Calidad de planta", "Sanidad / enfermedad", "Daño en transporte", "Error de despacho o variedad", "Plantas faltantes en la entrega", "Condiciones climáticas", "Otro"];
 const COL = "reposiciones";
 const LSKEY = "llahuen-repo-local";
-const EJEMPLOS = [
-  { fecha: "2026-09-08", productor: "Productor de ejemplo A", variedad: "Monterey", motivo: "Mortalidad / prendimiento", sector: "Sector 1", entregada: 12000, repuesta: 480, obs: "" },
-  { fecha: "2026-09-21", productor: "Productor de ejemplo B", variedad: "San Andreas", motivo: "Calidad de planta", sector: "Potrero norte", entregada: 8000, repuesta: 240, obs: "" },
-  { fecha: "2026-10-05", productor: "Productor de ejemplo A", variedad: "Albion", motivo: "Daño en transporte", sector: "Sector 2", entregada: 6000, repuesta: 150, obs: "" },
-  { fecha: "2026-10-12", productor: "Productor de ejemplo C", variedad: "Camino Real", motivo: "Sanidad / enfermedad", sector: "Lote 3", entregada: 10000, repuesta: 620, obs: "" }
-].map((r, i) => ({ ...r, id: "ej" + i, _ej: true }));
+const EJEMPLOS = [];
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -357,8 +353,8 @@ S.form = newForm();
 
 /* ---------- datos ---------- */
 const realRows = () => S.rows;
-const shownRows = () => S.rows.length ? S.rows : (S.loaded ? EJEMPLOS : []);
-const usingExamples = () => S.loaded && !S.rows.length;
+const shownRows = () => S.rows;
+const usingExamples = () => false;
 function loadLocal() { try { return JSON.parse(localStorage.getItem(LSKEY) || "[]"); } catch (e) { return []; } }
 function saveLocal() { try { localStorage.setItem(LSKEY, JSON.stringify(S.rows)); } catch (e) { } }
 /* ---------- sincronización con el equipo ---------- */
@@ -532,7 +528,7 @@ function viewList() {
     </article>`;
   }).join("");
   return `<div class="h-row"><h3>${ico("note")}Reposiciones registradas <span class="muted small mono">${ex ? "" : realRows().length}</span></h3>${ex ? "" : `<button class="btn sm" data-act="xlsx-all">Descargar Excel</button>`}</div>
-  ${ex ? `<div class="empty"><svg viewBox="0 0 200 250" aria-hidden="true"><use href="#i-berry-art"/></svg><p class="muted">Aún no hay reposiciones. Abajo ves registros de ejemplo para que veas cómo queda; desaparecen al guardar la primera.</p></div>` : ""}
+  ${S.loaded && !S.rows.length ? `<div class="empty"><svg viewBox="0 0 200 250" aria-hidden="true"><use href="#i-berry-art"/></svg><p class="muted">Aún no hay reposiciones registradas. Completa el formulario y toca <b>Registrar reposición</b>; aparecerán aquí para todo el equipo.</p></div>` : ""}
   <input type="search" id="q" placeholder="Buscar productor, variedad, motivo o sector" value="${esc(S.q)}" aria-label="Buscar">
   <div class="list">${items || `<p class="muted">Ningún registro coincide con la búsqueda.</p>`}</div>
   ${L.length > 80 ? `<p class="muted small">Mostrando 80 de ${L.length}. Usa la búsqueda o el Resumen para ver el resto.</p>` : ""}`;
