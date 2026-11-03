@@ -471,7 +471,7 @@ function teamForm() {
     ${TEAM_MSG ? `<div class="err">${esc(TEAM_MSG)}</div>` : ""}
     <div><button type="submit" class="btn primary">Conectar</button></div></form>`;
 }
-function sheetPanel() { return TEAM ? teamPanel() : ""; }
+function sheetPanel() { return TEAM && !(READONLY && !TEAM_OK) ? teamPanel() : ""; }
 const TEAMMSG = () => (typeof TEAM_OK !== "undefined" && TEAM_OK) ? " y se eliminará para todo el equipo" : "";
 const newId = () => "r" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 
@@ -647,6 +647,7 @@ function viewRes() {
   const motTop = groupBy(rows, r => r.motivo).sort((a, b) => b.rep - a.rep)[0];
   const ft = groupBy(rows, r => fotoper(r.variedad) || "Otra variedad");
   return `<section class="view">
+  ${READONLY && TEAM && !TEAM_OK ? teamForm() : ""}
   ${READONLY ? `<div class="robar">${ico("book")}<span><b>Versión de consulta.</b> Resumen y gráficos de las reposiciones del equipo, actualizados en línea. Puedes filtrar y descargar el Excel.</span></div>` : ""}
   <div class="h-row"><h2>Resumen de reposiciones</h2>${usingExamples() ? '<span class="ejemplo">datos de ejemplo</span>' : `<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn sm primary" data-act="xlsx">Descargar Excel</button><button class="btn sm" data-act="csv">CSV</button></div>`}</div>
   <div class="panel">
