@@ -353,7 +353,7 @@ function setSync(c, t) { const s = $("#sync"); s.className = "sync " + c; s.quer
 const S = {
   rows: [], db: null, dl: null, loaded: false, tab: "reg",
   form: null, editId: null, armed: null, q: "",
-  f: { desde: "", hasta: "", zona: "", variedad: "", productor: "" },
+  f: { desde: "", hasta: "", zona: "", variedad: "", productor: "", registrador: "" },
   metric: {}
 };
 const newForm = () => ({ fecha: todayISO(), productor: "", variedad: "", motivo: "", sector: "", entregada: "", repuesta: "", obs: "", registradoPor: (() => { try { return (JSON.parse(localStorage.getItem("llahuen-repo-cfg")) || {}).nombre || ""; } catch (e) { return ""; } })() });
@@ -581,7 +581,7 @@ async function submitForm(ev) {
 function filtRows() {
   const f = S.f;
   return shownRows().filter(r => (!f.desde || r.fecha >= f.desde) && (!f.hasta || r.fecha <= f.hasta) && (!f.zona || zonaR(r) === f.zona)
-    && (!f.variedad || r.variedad === f.variedad) && (!f.productor || r.productor === f.productor));
+    && (!f.variedad || r.variedad === f.variedad) && (!f.productor || r.productor === f.productor) && (!f.registrador || (r.registradoPor || "Sin registrador") === f.registrador));
 }
 function groupBy(rows, keyFn) {
   const m = new Map();
@@ -605,7 +605,7 @@ function table(groups, title) {
   <tbody>${gs.map(g => `<tr><td>${esc(g.k)}</td><td class="n">${g.n}</td><td class="n">${nf(g.ent)}</td><td class="n">${nf(g.rep)}</td><td class="n">${pctTxt(g.p)}</td></tr>`).join("")}</tbody>
   <tfoot><tr><td>Total</td><td class="n">${T.n}</td><td class="n">${nf(T.ent)}</td><td class="n">${nf(T.rep)}</td><td class="n">${pctTxt(pctOf(T.rep, T.ent))}</td></tr></tfoot></table></div></details>`;
 }
-const ICONS = { mot: ico("flag", 1), var: ico("berry", 1), prod: ico("leaf"), sec: ico("sprout"), zona: ico("pin") };
+const ICONS = { mot: ico("flag", 1), var: ico("berry", 1), prod: ico("leaf"), sec: ico("sprout"), zona: ico("pin"), reg: ico("note") };
 function block(id, title, groups, colTitle, note = "") {
   const m = S.metric[id] || "rep";
   return `<div class="panel">
@@ -642,6 +642,7 @@ function viewRes() {
   const rows = filtRows(), all = shownRows(), f = S.f;
   const T = rows.reduce((s, r) => ({ ent: s.ent + (+r.entregada || 0), rep: s.rep + (+r.repuesta || 0) }), { ent: 0, rep: 0 });
   const prods = uniq(all.map(r => r.productor)).sort((a, b) => a.localeCompare(b, "es"));
+  const regs = uniq(all.map(r => r.registradoPor || "Sin registrador")).sort((a, b) => a.localeCompare(b, "es"));
   const vars = uniq(all.map(r => r.variedad)).sort((a, b) => a.localeCompare(b, "es"));
   const zonas = uniq(all.map(r => zonaR(r))).sort();
   const motTop = groupBy(rows, r => r.motivo).sort((a, b) => b.rep - a.rep)[0];
@@ -657,6 +658,7 @@ function viewRes() {
       <div class="field"><label for="r-zona">Zona</label><select id="r-zona" data-f="zona">${opt(zonas, f.zona, "Todas")}</select></div>
       <div class="field"><label for="r-var">Variedad</label><select id="r-var" data-f="variedad">${opt(vars, f.variedad, "Todas")}</select></div>
       <div class="field"><label for="r-prod">Productor</label><select id="r-prod" data-f="productor">${opt(prods, f.productor, "Todos")}</select></div>
+      <div class="field"><label for="r-reg">Registrado por</label><select id="r-reg" data-f="registrador">${opt(regs, f.registrador, "Todos")}</select></div>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn sm" data-act="per" data-p="temp">Temporada actual</button><button class="btn sm" data-act="per" data-p="90">Últimos 90 días</button><button class="btn sm" data-act="per" data-p="all">Todo</button>
@@ -678,6 +680,7 @@ function viewRes() {
   ${block("prod", "Por productor", groupBy(rows, r => r.productor), "Productor")}
   ${block("sec", "Por sector", groupBy(rows, r => r.sector ? (f.productor ? r.sector : `${r.sector} · ${r.productor}`) : "Sin sector"), "Sector", `<p class="muted small" style="margin:0">${f.productor ? "Sectores del productor elegido." : "Cada sector se muestra con su productor. Filtra por productor para ver solo sus sectores."}</p>`)}
   ${block("zona", "Por zona", groupBy(rows, r => zonaR(r)), "Zona")}
+  ${block("reg", "Por registrador", groupBy(rows, r => r.registradoPor || "Sin registrador"), "Registrado por", `<p class="muted small" style="margin:0">Reposiciones cargadas por cada persona.</p>`)}
   </div>
   ${sheetPanel()}
   ${READONLY ? "" : `  <div class="panel"><h3>${ico("book")}Datos y respaldo</h3>
@@ -795,7 +798,7 @@ function excelLibro(rows) {
   const T = det.reduce((s, r) => ({ e: s.e + (+r.entregada || 0), p: s.p + (+r.repuesta || 0) }), { e: 0, p: 0 });
   R.push([H("Total general"), H("Registros"), H("Entregadas"), H("Repuestas"), H("% reposición")]);
   R.push([{ v: "Todas las reposiciones", s: 6 }, { v: n, s: 7 }, { v: T.e, s: 7 }, { v: T.p, s: 7 }, { v: T.e ? T.p / T.e : 0, s: 8 }]);
-  const blocks = [["Por variedad", r => r.variedad], ["Por motivo", r => r.motivo], ["Por productor", r => r.productor], ["Por zona", r => zonaR(r)],
+  const blocks = [["Por variedad", r => r.variedad], ["Por motivo", r => r.motivo], ["Por productor", r => r.productor], ["Por zona", r => zonaR(r)], ["Por registrador", r => r.registradoPor || "Sin registrador"],
     ["Por sector", r => r.sector ? `${r.sector} · ${r.productor}` : "Sin sector"], ["Por mes", r => (r.fecha || "").slice(0, 7) || "Sin fecha"]];
   for (const [title, fn] of blocks) {
     let g = groupBy(det, fn);
@@ -811,7 +814,7 @@ function excelLibro(rows) {
 async function exportExcel() {
   const rows = filtRows().filter(r => !r._ej);
   if (!rows.length) { toast("No hay reposiciones para exportar con este filtro."); return; }
-  const blob = excelLibro(rows), f = S.f, filtrado = f.desde || f.hasta || f.zona || f.variedad || f.productor;
+  const blob = excelLibro(rows), f = S.f, filtrado = f.desde || f.hasta || f.zona || f.variedad || f.productor || f.registrador;
   const filename = `reposiciones-llahuen-${todayISO()}${filtrado ? "-filtrado" : ""}.xlsx`;
   if (!S.dl) { toast("En esta vista el teléfono no permite descargar archivos."); return; }
   try { await S.dl.save({ filename, data: blob }); if (!(window.claude && window.claude.use)) toast(`Excel descargado: ${rows.length} reposiciones`); }
@@ -838,8 +841,8 @@ async function importDir(file) {
   toast(`Directorio cargado: ${dr.length} productores`);
 }
 async function exportCsv() {
-  const head = ["Fecha", "Productor", "Zona", "Variedad", "Fotoperíodo", "Motivo", "Sector", "Plantas entregadas", "Plantas repuestas", "% reposición", "Observaciones"];
-  const rows = filtRows().filter(r => !r._ej).sort((a, b) => a.fecha.localeCompare(b.fecha)).map(r => [r.fecha, r.productor, zonaR(r), r.variedad, fotoper(r.variedad), r.motivo, r.sector, r.entregada, r.repuesta, (pctOf(+r.repuesta, +r.entregada) ?? 0).toFixed(1).replace(".", ","), r.obs]);
+  const head = ["Fecha", "Productor", "Zona", "Variedad", "Fotoperíodo", "Motivo", "Sector", "Plantas entregadas", "Plantas repuestas", "% reposición", "Observaciones", "Registrado por"];
+  const rows = filtRows().filter(r => !r._ej).sort((a, b) => a.fecha.localeCompare(b.fecha)).map(r => [r.fecha, r.productor, zonaR(r), r.variedad, fotoper(r.variedad), r.motivo, r.sector, r.entregada, r.repuesta, (pctOf(+r.repuesta, +r.entregada) ?? 0).toFixed(1).replace(".", ","), r.obs, r.registradoPor || ""]);
   const csv = "﻿" + [head, ...rows].map(l => l.map(c => { const s = String(c ?? ""); return /[;"\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; }).join(";")).join("\r\n");
   await giveFile(`reposiciones-llahuen-${todayISO()}.csv`, csv, "text/csv");
 }
@@ -896,7 +899,7 @@ document.addEventListener("click", async e => {
   if (a === "per") setPeriod(b.dataset.p);
   if (a === "csv") exportCsv();
   if (a === "xlsx") exportExcel();
-  if (a === "xlsx-all") { S.f = { desde: "", hasta: "", zona: "", variedad: "", productor: "" }; exportExcel(); }
+  if (a === "xlsx-all") { S.f = { desde: "", hasta: "", zona: "", variedad: "", productor: "", registrador: "" }; exportExcel(); }
   if (a === "backup") exportBackup();
   if (a === "s-sync") { setSync("off", "sincronizando…"); flushSheet(); }
   if (a === "cb-close") $("#copybox").hidden = true;
