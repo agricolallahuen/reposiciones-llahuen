@@ -108,11 +108,13 @@ input[aria-invalid="true"] { border-color: var(--bad); }
 .lineas { display: flex; flex-direction: column; gap: 10px; border: 1px solid var(--line); border-radius: 12px; padding: 12px; background: var(--surface-2); }
 .lhead { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
 .lhead .lbl { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
-.linea { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) 84px 40px; gap: 8px; align-items: end; padding-bottom: 10px; border-bottom: 1px dashed var(--line); }
+.linea { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 84px 40px; gap: 8px; align-items: end; padding-bottom: 10px; border-bottom: 1px dashed var(--line); }
 .linea:last-of-type { border-bottom: 0; padding-bottom: 0; }
 .linea .pct b { font-size: 17px; }
-.linea .ldel { min-height: 46px; width: 40px; padding: 0; color: var(--bad); }
-@media (max-width: 560px) { .linea { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 76px; } .linea .lv { grid-column: 1 / -1; } .linea .ldel { grid-column: 3; grid-row: 1; justify-self: end; align-self: start; min-height: 32px; width: 32px; } .linea:has(.ldel) .lv { grid-column: 1 / 3; } }
+.linea .ldel { min-height: 46px; width: 40px; padding: 0; color: var(--bad); grid-column: 4; grid-row: 1; }
+.linea .lv { grid-column: 1; } .linea .ls { grid-column: 2 / 4; } .linea:not(:has(.ldel)) .ls { grid-column: 2 / -1; }
+.vlist .vsec { color: var(--muted); font-size: 12.5px; }
+@media (max-width: 560px) { .linea { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 76px; } .linea .lv { grid-column: 1 / -1; } .linea:has(.ldel) .lv { grid-column: 1 / 3; } .linea .ls, .linea:not(:has(.ldel)) .ls { grid-column: 1 / -1; } .linea .ldel { grid-column: 3; grid-row: 1; justify-self: end; align-self: start; min-height: 32px; width: 32px; } }
 .addl { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-style: dashed; color: var(--leaf); background: var(--surface); }
 .addl .ico { width: 20px; height: 20px; }
 .ltotal { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: 13.5px; border-top: 1px solid var(--line); padding-top: 10px; }
@@ -393,7 +395,7 @@ const S = {
   f: { desde: "", hasta: "", zona: "", variedad: "", productor: "", registrador: "", region: "", sector: "" },
   metric: {}
 };
-const newLinea = () => ({ variedad: "", entregada: "", repuesta: "" });
+const newLinea = () => ({ variedad: "", sector: "", entregada: "", repuesta: "" });
 const newForm = () => ({ fecha: todayISO(), productor: "", guia: "", motivo: "", sector: "", lineas: [newLinea()], obs: "", registradoPor: (() => { try { return (JSON.parse(localStorage.getItem("llahuen-repo-cfg")) || {}).nombre || ""; } catch (e) { return ""; } })() });
 S.form = newForm();
 
@@ -534,6 +536,7 @@ function lineaHtml(l, i, n) {
   const p = pctOf(+l.repuesta, +l.entregada), bad = +l.entregada > 0 && +l.repuesta > +l.entregada;
   return `<div class="linea" data-i="${i}">
     <div class="field lv"><label for="l-var-${i}">Variedad${n > 1 ? " " + (i + 1) : ""}</label><select id="l-var-${i}" data-li="${i}" data-lf="variedad">${varOptions(l.variedad)}</select></div>
+    <div class="field ls"><label for="l-sec-${i}">Sector</label><input type="text" id="l-sec-${i}" data-li="${i}" data-lf="sector" list="dl-sector" value="${esc(l.sector || "")}" placeholder="Código, ej. DC 3.1" autocomplete="off"></div>
     <div class="field"><label for="l-ent-${i}">Entregadas</label><input type="number" inputmode="numeric" min="0" step="1" id="l-ent-${i}" data-li="${i}" data-lf="entregada" value="${esc(l.entregada)}" placeholder="0"></div>
     <div class="field"><label for="l-rep-${i}">Repuestas</label><input type="number" inputmode="numeric" min="0" step="1" id="l-rep-${i}" data-li="${i}" data-lf="repuesta" value="${esc(l.repuesta)}" placeholder="0" aria-invalid="${bad}"></div>
     <div class="pct"><span>%</span><b id="l-pct-${i}">${pctTxt(p)}</b></div>
@@ -560,8 +563,7 @@ function viewReg() {
         <div class="hint" id="h-zona">${F.productor ? "Zona: " + esc(zonaDe(F.productor)) : (DIRECTORIO.rows.length ? "Se sugieren los productores del directorio." : "Escribe el nombre del productor.")}</div></div>
       <div class="field"><label for="f-guia">N° guía de despacho</label><input type="text" id="f-guia" name="guia" value="${esc(F.guia || "")}" placeholder="Opcional" inputmode="numeric" autocomplete="off"></div>
       <div class="field"><label for="f-motivo">Motivo</label><select id="f-motivo" name="motivo" required>${opt(MOTIVOS, F.motivo, "Elige motivo")}</select></div>
-      <div class="field"><label for="f-sector">Sector</label><input type="text" id="f-sector" name="sector" list="dl-sector" value="${esc(F.sector)}" placeholder="Ej. Sector 2, Potrero norte" autocomplete="off">
-        <datalist id="dl-sector">${sectores.map(s => `<option value="${esc(s)}">`).join("")}</datalist></div>
+      <datalist id="dl-sector">${sectores.map(s => `<option value="${esc(s)}">`).join("")}</datalist>
     </div>
     <div class="lineas">
       <div class="lhead"><span class="lbl">Variedades de esta guía</span><span class="muted small">${F.lineas.length} ${F.lineas.length === 1 ? "variedad" : "variedades"}</span></div>
@@ -594,8 +596,8 @@ function viewList() {
     const r = g.h, ent = g.rows.reduce((s, x) => s + (+x.entregada || 0), 0), rpt = g.rows.reduce((s, x) => s + (+x.repuesta || 0), 0), p = pctOf(rpt, ent), k = g.k;
     return `<article class="rcard ${S.editId === k ? "editing" : ""}">
       <div><div class="nm">${esc(r.productor)} ${r._ej ? '<span class="ejemplo">ejemplo</span>' : ""}</div>
-        <div class="meta">${fmtD(r.fecha)}${r.guia ? " · Guía N° " + esc(r.guia) : ""}${r.sector ? " · " + esc(r.sector) : ""}</div>
-        <ul class="vlist">${g.rows.map(x => `<li><span>${esc(x.variedad)}</span><span class="mono">${nf(x.repuesta)} de ${nf(x.entregada)} · ${pctTxt(pctOf(+x.repuesta, +x.entregada))}</span></li>`).join("")}</ul>
+        <div class="meta">${fmtD(r.fecha)}${r.guia ? " · Guía N° " + esc(r.guia) : ""}</div>
+        <ul class="vlist">${g.rows.map(x => `<li><span>${esc(x.variedad)}${x.sector ? ` <span class="vsec">· ${esc(x.sector)}</span>` : ""}</span><span class="mono">${nf(x.repuesta)} de ${nf(x.entregada)} · ${pctTxt(pctOf(+x.repuesta, +x.entregada))}</span></li>`).join("")}</ul>
         <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap"><span class="tag m">${esc(r.motivo)}</span><span class="tag">${esc(zonaR(r))}</span>${r.registradoPor ? `<span class="tag por">Registró: ${esc(r.registradoPor)}</span>` : ""}</div>
         ${r.obs ? `<div class="meta" style="margin-top:6px">${esc(r.obs)}</div>` : ""}</div>
       <div class="num"><b>${pctTxt(p)}</b>${nf(rpt)} de ${nf(ent)}${g.rows.length > 1 ? `<br><span class="small">${g.rows.length} variedades</span>` : ""}</div>
@@ -637,7 +639,7 @@ async function submitForm(ev) {
   const creado = prevRows[0]?.creado || now, list = [];
   F.lineas.forEach((l, i) => {
     const ent = Math.round(+l.entregada), rpt = Math.round(+l.repuesta), id = l.id || newId();
-    list.push([id, { fecha: F.fecha, productor: F.productor, zona: zonaDe(F.productor), guia: F.guia || "", grupo, orden: i, variedad: l.variedad, motivo: F.motivo, sector: F.sector,
+    list.push([id, { fecha: F.fecha, productor: F.productor, zona: zonaDe(F.productor), guia: F.guia || "", grupo, orden: i, variedad: l.variedad, motivo: F.motivo, sector: String(l.sector || "").trim(),
       entregada: ent, repuesta: rpt, porcentaje: Math.round(pctOf(rpt, ent) * 10) / 10, obs: F.obs || "", registradoPor: F.registradoPor, creado: l.creado || creado, actualizado: now }]);
   });
   const keepIds = new Set(list.map(x => x[0])), dels = prevRows.map(r => r.id).filter(id => !keepIds.has(id));
@@ -1099,9 +1101,9 @@ document.addEventListener("click", async e => {
   if (READONLY && /^(edit|del|del-no|cancel)$/.test(a)) return;
   if (a === "edit") { const g = grpRows(id); if (!g.length) return; const r = g[0]; S.editId = id;
     S.form = { fecha: r.fecha, productor: r.productor, guia: r.guia || "", motivo: r.motivo, sector: r.sector || "", obs: r.obs || "", registradoPor: r.registradoPor || "",
-      lineas: g.map(x => ({ id: x.id, creado: x.creado, variedad: x.variedad, entregada: String(x.entregada), repuesta: String(x.repuesta) })) };
+      lineas: g.map(x => ({ id: x.id, creado: x.creado, variedad: x.variedad, sector: x.sector || "", entregada: String(x.entregada), repuesta: String(x.repuesta) })) };
     S.tab = "reg"; render(); window.scrollTo(0, 0); }
-  if (a === "line-add") { S.form.lineas.push(newLinea()); render(); const n = S.form.lineas.length - 1; const s = $("#l-var-" + n); if (s) { s.focus(); s.scrollIntoView({ block: "center" }); } }
+  if (a === "line-add") { const last = S.form.lineas[S.form.lineas.length - 1] || {}; S.form.lineas.push({ ...newLinea(), sector: last.sector || "" }); render(); const n = S.form.lineas.length - 1; const s = $("#l-var-" + n); if (s) { s.focus(); s.scrollIntoView({ block: "center" }); } }
   if (a === "line-del") { const i = +b.dataset.i; if (S.form.lineas.length > 1) { S.form.lineas.splice(i, 1); render(); } }
   if (a === "cancel") { S.editId = null; S.form = newForm(); render(); }
   if (a === "del-no") { S.armed = null; render(); }
