@@ -722,7 +722,15 @@ const VAR_ALTO = ["Artesia", "Alturas", "Altura", "Adelanto", "Belvedere", "Cast
 const precioNeto = v => VAR_ALTO.includes(nrm(v)) ? P_ALTO : P_BASE;
 const valorNeto = r => (+r.repuesta || 0) * precioNeto(r.variedad);
 const clp = n => "$" + nf(Math.round(n || 0));
-const secK = r => String(r.sector || "").trim().toUpperCase() || "Sin sector";
+let _secC = null, _secR = null, _secN = -1;
+const secLabels = () => {
+  if (_secR === S.rows && _secN === S.rows.length) return _secC;
+  const cnt = new Map();
+  for (const x of S.rows) { const v = String(x.sector || "").trim().toUpperCase().replace(/\s+/g, " "); if (!v) continue; const k = v.replace(/ /g, ""); const m = cnt.get(k) || new Map(); m.set(v, (m.get(v) || 0) + 1); cnt.set(k, m); }
+  _secC = new Map([...cnt].map(([k, m]) => [k, [...m].sort((a, b) => b[1] - a[1] || a[0].length - b[0].length)[0][0]]));
+  _secR = S.rows; _secN = S.rows.length; return _secC;
+};
+const secK = r => { const v = String(r.sector || "").trim().toUpperCase().replace(/\s+/g, " "); if (!v) return "Sin sector"; return secLabels().get(v.replace(/ /g, "")) || v; };
 const compact = (v, m) => {
   if (m === "p") return nf(v, v < 10 && v % 1 ? 1 : 0) + "%";
   const s = m === "clp" ? "$" : "", a = Math.abs(v);
