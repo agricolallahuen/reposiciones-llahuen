@@ -24,6 +24,7 @@
   --bg: #EDF0EA; --surface: #FFFFFF; --surface-2: #F5F7F3; --ink: #17251D; --muted: #5B6A60; --line: #D3DBD1;
   --leaf: #2A6846; --leaf-soft: #DCEBE1; --berry: #B1243B; --berry-soft: #F6DDE1;
   --ok: #2E7D4F; --warn: #B26B00; --bad: #BE3030; --info: #1F6F8B;
+  --c1: #2A6846; --c2: #B1243B; --c3: #C27A2C; --c4: #2C7FB8; --c5: #7A5BB5; --c6: #1F8A8A; --c7: #8A9A2C; --c8: #9AA39C;
   --font-display: "Bricolage Grotesque", "Trebuchet MS", system-ui, sans-serif;
   --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
@@ -33,12 +34,14 @@
     --bg: #0F1611; --surface: #18211B; --surface-2: #1E2921; --ink: #E5EDE6; --muted: #95A59A; --line: #2C382F;
     --leaf: #78C795; --leaf-soft: #20382A; --berry: #F2788A; --berry-soft: #43202A;
     --ok: #6FCB93; --warn: #E3A33A; --bad: #F07A7A; --info: #5DB4D4; color-scheme: dark;
+    --c1: #78C795; --c2: #F2788A; --c3: #E3A35A; --c4: #6BB3E0; --c5: #B79BEA; --c6: #5CC8C8; --c7: #C4D46A; --c8: #6E7A72;
   }
 }
 :root[data-theme="dark"] {
   --bg: #0F1611; --surface: #18211B; --surface-2: #1E2921; --ink: #E5EDE6; --muted: #95A59A; --line: #2C382F;
   --leaf: #78C795; --leaf-soft: #20382A; --berry: #F2788A; --berry-soft: #43202A;
   --ok: #6FCB93; --warn: #E3A33A; --bad: #F07A7A; --info: #5DB4D4; color-scheme: dark;
+    --c1: #78C795; --c2: #F2788A; --c3: #E3A35A; --c4: #6BB3E0; --c5: #B79BEA; --c6: #5CC8C8; --c7: #C4D46A; --c8: #6E7A72;
 }
 * { box-sizing: border-box; }
 body {
@@ -161,6 +164,25 @@ input[aria-invalid="true"] { border-color: var(--bad); }
 .trend .gl { stroke: var(--line); stroke-width: 1; }
 .trend .c1 { fill: var(--leaf); } .trend .c2 { fill: var(--berry); }
 .trend .pl { fill: none; stroke: var(--ink); stroke-width: 1.6; } .trend .pd { fill: var(--surface); stroke: var(--ink); stroke-width: 1.6; }
+.rpctl { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+.pie { display: flex; flex-wrap: wrap; gap: 16px 24px; align-items: center; }
+.pie svg { width: 220px; max-width: 100%; height: auto; flex: none; margin: 0 auto; }
+.pie svg .pc1 { fill: var(--ink); font-family: var(--font-mono); font-size: 17px; }
+.pie svg .pc2 { fill: var(--muted); font-size: 11px; }
+.pie ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; flex: 1 1 240px; min-width: 0; font-size: 13.5px; }
+.pie li { display: grid; grid-template-columns: 12px minmax(0, 1fr) auto 52px; gap: 8px; align-items: center; }
+.pie li i { width: 12px; height: 12px; border-radius: 3px; }
+.pie li .k { overflow-wrap: anywhere; }
+.pie li .v { font-family: var(--font-mono); font-size: 12.5px; color: var(--muted); text-align: right; white-space: nowrap; }
+.mchart { overflow-x: auto; }
+.mchart svg { width: 100%; min-width: 420px; height: auto; display: block; }
+.mchart text { fill: var(--muted); font-family: var(--font-mono); font-size: 10px; }
+.mchart .gl { stroke: var(--line); stroke-width: 1; }
+.bar.cl .fl { background: var(--c3); }
+.bar.en .fl { background: var(--c4); }
+.kpi small { font-family: var(--font-mono); font-size: 11.5px; color: var(--muted); }
+.kpi.val b { font-size: 21px; }
+.rpnote { margin: 0; }
 .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12.5px; color: var(--muted); }
 .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
 details summary { cursor: pointer; font-size: 13px; font-weight: 600; color: var(--leaf); }
@@ -209,7 +231,7 @@ h3 .ico.b { color: var(--berry); --ifill: var(--berry-soft); }
   section.view.reg { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 24px; align-items: start; }
   .col-form { position: sticky; top: 80px; }
   .rgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
-  .kpis { grid-template-columns: repeat(5, 1fr); }
+  .kpis { grid-template-columns: repeat(6, minmax(0, 1fr)); }
   .bgart2 { bottom: 0; }
 }
 .copybox { position: fixed; inset: 0; z-index: 60; background: color-mix(in srgb, var(--ink) 50%, transparent); display: flex; align-items: center; justify-content: center; padding: 16px; }
@@ -368,7 +390,7 @@ function setSync(c, t) { const s = $("#sync"); s.className = "sync " + c; s.quer
 const S = {
   rows: [], db: null, dl: null, loaded: false, tab: "reg",
   form: null, editId: null, armed: null, q: "",
-  f: { desde: "", hasta: "", zona: "", variedad: "", productor: "", registrador: "" },
+  f: { desde: "", hasta: "", zona: "", variedad: "", productor: "", registrador: "", region: "", sector: "" },
   metric: {}
 };
 const newLinea = () => ({ variedad: "", entregada: "", repuesta: "" });
@@ -633,36 +655,37 @@ async function submitForm(ev) {
 function filtRows() {
   const f = S.f;
   return shownRows().filter(r => (!f.desde || r.fecha >= f.desde) && (!f.hasta || r.fecha <= f.hasta) && (!f.zona || zonaR(r) === f.zona)
-    && (!f.variedad || r.variedad === f.variedad) && (!f.productor || r.productor === f.productor) && (!f.registrador || (r.registradoPor || "Sin registrador") === f.registrador));
+    && (!f.variedad || r.variedad === f.variedad) && (!f.productor || r.productor === f.productor) && (!f.registrador || (r.registradoPor || "Sin registrador") === f.registrador)
+    && (!f.region || regionR(r) === f.region) && (!f.sector || (r.sector || "Sin sector") === f.sector));
 }
 function groupBy(rows, keyFn) {
   const m = new Map();
-  for (const r of rows) { const k = keyFn(r) || "Sin dato"; const g = m.get(k) || { k, n: 0, ent: 0, rep: 0 }; g.n++; g.ent += +r.entregada || 0; g.rep += +r.repuesta || 0; m.set(k, g); }
+  for (const r of rows) { const k = keyFn(r) || "Sin dato"; const g = m.get(k) || { k, n: 0, ent: 0, rep: 0, val: 0 }; g.n++; g.ent += +r.entregada || 0; g.rep += +r.repuesta || 0; g.val += valorNeto(r); m.set(k, g); }
   return [...m.values()].map(g => ({ ...g, p: pctOf(g.rep, g.ent) }));
 }
 function bars(groups, metric, limit = 12) {
-  const isP = metric === "p";
-  const gs = groups.slice().sort((a, b) => isP ? (b.p ?? -1) - (a.p ?? -1) : b.rep - a.rep).slice(0, limit);
-  const max = Math.max(...gs.map(g => isP ? (g.p || 0) : g.rep), 0) || 1;
+  const isP = metric === "p", val = g => medVal(g, metric);
+  const gs = groups.slice().sort((a, b) => val(b) - val(a)).slice(0, limit);
+  const max = Math.max(...gs.map(val), 0) || 1;
   return `<div class="bars">${gs.map(g => {
-    const v = isP ? (g.p || 0) : g.rep, w = Math.max(v / max * 100, 0.5), inside = w > 70;
-    const label = isP ? pctTxt(g.p) : nf(g.rep) + " pl. · " + pctTxt(g.p);
-    return `<div class="bar ${isP ? "pc" : ""}"><div class="lb">${esc(g.k)}</div><div class="tr" style="--w:${w}%"><div class="fl" style="width:${w}%"></div><span class="vl ${inside ? "in" : ""}">${label}</span></div></div>`;
+    const v = val(g), w = Math.max(v / max * 100, 0.5), inside = w > 70;
+    const label = isP ? pctTxt(g.p) : metric === "clp" ? clp(v) : metric === "ent" ? nf(g.ent) + " pl." : nf(g.rep) + " pl. · " + pctTxt(g.p);
+    return `<div class="bar ${isP ? "pc" : metric === "clp" ? "cl" : metric === "ent" ? "en" : ""}"><div class="lb">${esc(g.k)}</div><div class="tr" style="--w:${w}%"><div class="fl" style="width:${w}%"></div><span class="vl ${inside ? "in" : ""}">${label}</span></div></div>`;
   }).join("")}</div>${groups.length > limit ? `<p class="muted small" style="margin:0">Se muestran ${limit} de ${groups.length}; la tabla tiene todos.</p>` : ""}`;
 }
 function table(groups, title) {
   const gs = groups.slice().sort((a, b) => b.rep - a.rep);
-  const T = gs.reduce((s, g) => ({ n: s.n + g.n, ent: s.ent + g.ent, rep: s.rep + g.rep }), { n: 0, ent: 0, rep: 0 });
-  return `<details><summary>Ver tabla</summary><div class="tbl"><table><thead><tr><th>${esc(title)}</th><th>Registros</th><th>Entregadas</th><th>Repuestas</th><th>% repos.</th></tr></thead>
-  <tbody>${gs.map(g => `<tr><td>${esc(g.k)}</td><td class="n">${g.n}</td><td class="n">${nf(g.ent)}</td><td class="n">${nf(g.rep)}</td><td class="n">${pctTxt(g.p)}</td></tr>`).join("")}</tbody>
-  <tfoot><tr><td>Total</td><td class="n">${T.n}</td><td class="n">${nf(T.ent)}</td><td class="n">${nf(T.rep)}</td><td class="n">${pctTxt(pctOf(T.rep, T.ent))}</td></tr></tfoot></table></div></details>`;
+  const T = gs.reduce((s, g) => ({ n: s.n + g.n, ent: s.ent + g.ent, rep: s.rep + g.rep, val: s.val + (g.val || 0) }), { n: 0, ent: 0, rep: 0, val: 0 });
+  return `<details><summary>Ver tabla</summary><div class="tbl"><table><thead><tr><th>${esc(title)}</th><th>Registros</th><th>Entregadas</th><th>Repuestas</th><th>% repos.</th><th>Valor c/IVA</th></tr></thead>
+  <tbody>${gs.map(g => `<tr><td>${esc(g.k)}</td><td class="n">${g.n}</td><td class="n">${nf(g.ent)}</td><td class="n">${nf(g.rep)}</td><td class="n">${pctTxt(g.p)}</td><td class="n">${clp((g.val || 0) * (1 + IVA))}</td></tr>`).join("")}</tbody>
+  <tfoot><tr><td>Total</td><td class="n">${T.n}</td><td class="n">${nf(T.ent)}</td><td class="n">${nf(T.rep)}</td><td class="n">${pctTxt(pctOf(T.rep, T.ent))}</td><td class="n">${clp(T.val * (1 + IVA))}</td></tr></tfoot></table></div></details>`;
 }
-const ICONS = { mot: ico("flag", 1), var: ico("berry", 1), prod: ico("leaf"), sec: ico("sprout"), zona: ico("pin"), reg: ico("note") };
+const ICONS = { mot: ico("flag", 1), var: ico("berry", 1), prod: ico("leaf"), sec: ico("sprout"), zona: ico("pin"), regn: ico("pin"), reg: ico("note") };
 function block(id, title, groups, colTitle, note = "") {
   const m = S.metric[id] || "rep";
   return `<div class="panel">
     <div class="h-row"><h3>${ICONS[id] || ""}${title}</h3>
-      <div class="seg" role="group" aria-label="Medida"><button data-act="metric" data-id="${id}" data-m="rep" aria-pressed="${m === "rep"}">Plantas</button><button data-act="metric" data-id="${id}" data-m="p" aria-pressed="${m === "p"}">%</button></div></div>
+      <div class="seg" role="group" aria-label="Medida"><button data-act="metric" data-id="${id}" data-m="rep" aria-pressed="${m === "rep"}">Plantas</button><button data-act="metric" data-id="${id}" data-m="p" aria-pressed="${m === "p"}">%</button><button data-act="metric" data-id="${id}" data-m="clp" aria-pressed="${m === "clp"}">CLP</button></div></div>
     ${note}${groups.length ? bars(groups, m) + table(groups, colTitle) : `<p class="muted" style="margin:0">Sin datos para este filtro.</p>`}
   </div>`;
 }
@@ -674,7 +697,7 @@ function trend(rows) {
   const step = iw / g.length, bw = Math.min(26, step * .32);
   const ticks = [0, .25, .5, .75, 1].map(t => t * maxE);
   let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Plantas entregadas y repuestas por mes">`;
-  ticks.forEach(t => { const y = T + ih - t / maxE * ih; s += `<line class="gl" x1="${L}" x2="${W - R}" y1="${y}" y2="${y}"/><text x="${L - 6}" y="${y + 3}" text-anchor="end">${nf(t >= 1000 ? t / 1000 : t, t >= 1000 && t % 1000 ? 1 : 0)}${t >= 1000 ? "k" : ""}</text>`; });
+  ticks.forEach(t => { const y = T + ih - t / maxE * ih; s += `<line class="gl" x1="${L}" x2="${W - R}" y1="${y}" y2="${y}"/><text x="${L - 6}" y="${y + 3}" text-anchor="end">${compact(t, "rep")}</text>`; });
   [0, pMax / 2, pMax].forEach(p => { const y = T + ih - p / pMax * ih; s += `<text x="${W - R + 6}" y="${y + 3}">${nf(p, 0)}%</text>`; });
   const pts = [];
   g.forEach((x, i) => {
@@ -689,10 +712,125 @@ function trend(rows) {
   s += `</svg>`;
   return `<div class="legend"><span><i style="background:var(--leaf)"></i>Entregadas</span><span><i style="background:var(--berry)"></i>Repuestas</span><span><i style="background:var(--ink);height:2px;vertical-align:3px"></i>% reposición (eje derecho)</span></div><div class="trend">${s}</div>`;
 }
+/* ---------- región, precios y reporte gráfico ---------- */
+const REG_TXT = "Arica y Parinacota:ARICA;Tarapacá:PICA;Antofagasta:SAN PEDRO DE ATACAMA;Coquimbo:CANELA,COQUIMBO,ILLAPEL,LA SERENA,MONTE PATRIA,OVALLE;Valparaíso:HIJUELAS,PETORCA,QUILLOTA,SAN ANTONIO,SANTO DOMINGO;Metropolitana:CALERA DE TANGO,COLINA,EL BOSQUE,HUECHURABA,HUELQUEN,ISLA DE MAIPO,LA PINTANA,LAS CONDES,MELIPILLA,PADRE HURTADO,PAINE,PIRQUE,PROVIDENCIA,PUDAHUEL,PUENTE ALTO,SAN PEDRO,SANTIAGO,TALAGANTE,TIL TIL,VITACURA;O'Higgins:DONIHUE,EL OLIVAR,LAS CABRAS,LITUECHE,LOLOL,NANCAGUA,PAREDONES,PICHIDEGUA,PICHILEMU,PUMANQUE,REQUINOA,SAN FERNANDO;Maule:CAUQUENES,CHANCO,COLBUN,CONSTITUCION,CURICO,EMPEDRADO,HUALANE,LINARES,LONGAVI,MOLINA,PARRAL,PELLUHUE,PENCAHUE,RETIRO,ROMERAL,SAGRADA FAMILIA,SAN CLEMENTE,SAN JAVIER,TALCA,TENO,YERBAS BUENAS;Ñuble:BULNES,CHILLAN,CHILLAN VIEJO,COBQUECURA,COELEMU,COIHUECO,EL CARMEN,PEMUCO,PINTO,PORTEZUELO,QUILLON,QUILLLON,QUIRIHUE,SAN CARLOS,SAN FABIAN,SAN IGNACIO,SAN NICOLAS,TREGUACO,TREHUACO,YUNGAY;Biobío:ANTUCO,ARAUCO,CANETE,CONCEPCION,CORONEL,HUALQUI,LAJA,LEBU,LOS ALAMOS,LOS ANGELES,MULCHEN,NACIMIENTO,NEGRETE,QUILACO,QUILLECO,SAN PEDRO DE LA PAZ,SAN ROSENDO,SANTA BARBARA,SANTA JUANA,TALCAHUANO,TIRUA,TOME,YUMBEL;Araucanía:ANGOL,CARAHUE,CHOLCHOL,COLLIPULLI,ERCILLA,FREIRE,GALVARINO,GORBEA,LAUTARO,LONCOCHE,LONQUIMAY,LOS SAUCES,LUMACO,NUEVA IMPERIAL,NUEVA IMOERIAL,PADRE LAS CASAS,PITRUFQUEN,PUCON,RENAICO,SAAVEDRA,TEEMUCO,TEMUCO,TEODORO SCHMIDT,TOLTEN,TRAIGUEN,VICTORIA,VILCUN;Los Ríos:FUTRONO,LA UNION,LAGO RANCO,LANCO,LOS LAGOS,MAFIL,MARIQUINA,PAILLACO,PANGUIPULLI,RIO BUENO,VALDIVIA;Los Lagos:ANCUD,CALBUCO,CASTRO,CHONCHI,CURACO DE VELEZ,DALCAHUE,FRESIA,FRUTILLAR,FUTALEUFU,LLANQUIHUE,LOS MUERMOS,MAULLIN,OSORNO,PUERTO MONTT,PUERTO OCTAY,PUERTO VARAS,PUQUELDON,PURRANQUE,QUEILEN,QUELLON,QUINCHAO,RIO NEGRO,SAN JUAN DE LA COSTA,SAN PABLO;Aysén:AYSEN,CHILE CHICO,CISNES,COCHRANE,COYHAIQUE,PUERTO AYSEN,RIO IBANEZ;Magallanes:CABO DE HORNOS,NATALES,PORVENIR,PUNTA ARENAS";
+const REGION_OF = new Map();
+REG_TXT.split(";").forEach(s => { const [r, cs] = s.split(":"); cs.split(",").forEach(c => REGION_OF.set(nrm(c), r)); });
+const regionR = r => { const d = DIRMAP.get(nrm(r.productor)); return (d && REGION_OF.get(nrm(d[2]))) || "Sin región"; };
+const IVA = 0.19, P_BASE = 174, P_ALTO = 194;
+const VAR_ALTO = ["Artesia", "Alturas", "Altura", "Adelanto", "Belvedere", "Castaic", "Carpinteria"].map(nrm);
+const precioNeto = v => VAR_ALTO.includes(nrm(v)) ? P_ALTO : P_BASE;
+const valorNeto = r => (+r.repuesta || 0) * precioNeto(r.variedad);
+const clp = n => "$" + nf(Math.round(n || 0));
+const compact = (v, m) => {
+  if (m === "p") return nf(v, v < 10 && v % 1 ? 1 : 0) + "%";
+  const s = m === "clp" ? "$" : "", a = Math.abs(v);
+  if (a >= 1e6) return s + nf(v / 1e6, 1) + "M";
+  if (a >= 1e3) return s + nf(v / 1e3, a >= 1e4 ? 0 : 1) + "k";
+  return s + nf(v);
+};
+const DIMS = {
+  zona: ["Zona", r => zonaR(r)], region: ["Región", r => regionR(r)], productor: ["Productor", r => r.productor],
+  variedad: ["Variedad", r => r.variedad], sector: ["Sector", r => r.sector ? `${r.sector} · ${r.productor}` : "Sin sector"],
+  motivo: ["Motivo", r => r.motivo], registrador: ["Registrado por", r => r.registradoPor || "Sin registrador"]
+};
+const MEDS = { rep: "Plantas repuestas", ent: "Plantas entregadas", p: "% reposición", clp: "Valor repuesto (CLP con IVA)" };
+const medVal = (g, m) => m === "p" ? (g.p || 0) : m === "ent" ? g.ent : m === "clp" ? g.val * (1 + IVA) : g.rep;
+const medTxt = (v, m) => m === "p" ? pctTxt(v) : m === "clp" ? clp(v) : nf(v);
+const PAL = i => `var(--c${i + 1})`;
+let RP = { by: "zona", vista: "agr", med: "rep", tipo: "barras" };
+try { RP = { ...RP, ...(JSON.parse(localStorage.getItem("llahuen-repo-rp")) || {}) }; } catch (e) { }
+function topN(groups, m, N) {
+  const gs = groups.slice().sort((a, b) => m === "p" ? b.rep - a.rep : medVal(b, m) - medVal(a, m));
+  if (gs.length <= N) return gs;
+  const rest = gs.slice(N - 1);
+  const o = rest.reduce((s, g) => ({ ...s, n: s.n + g.n, ent: s.ent + g.ent, rep: s.rep + g.rep, val: s.val + g.val }), { k: `Otros (${rest.length})`, n: 0, ent: 0, rep: 0, val: 0, otros: true });
+  o.p = pctOf(o.rep, o.ent);
+  return [...gs.slice(0, N - 1), o];
+}
+function pieChart(groups, m) {
+  const top = topN(groups, m, 8), tot = top.reduce((s, g) => s + medVal(g, m), 0);
+  if (!tot) return `<p class="muted" style="margin:0">Sin valores para graficar con este filtro.</p>`;
+  const cx = 110, cy = 110, R = 100, r0 = 52;
+  let a0 = -Math.PI / 2, paths = "";
+  const pt = (a, rad) => `${(cx + rad * Math.cos(a)).toFixed(2)} ${(cy + rad * Math.sin(a)).toFixed(2)}`;
+  top.forEach((g, i) => {
+    const v = medVal(g, m), fr = v / tot, col = g.otros ? "var(--c8)" : PAL(i);
+    const tt = `<title>${esc(g.k)}: ${medTxt(v, m)} (${nf(fr * 100, 1)}%)</title>`;
+    if (fr >= 0.9999) { paths += `<circle cx="${cx}" cy="${cy}" r="${(R + r0) / 2}" fill="none" stroke="${col}" stroke-width="${R - r0}">${tt}</circle>`; return; }
+    if (fr <= 0) return;
+    const a1 = a0 + fr * Math.PI * 2, lg = fr > 0.5 ? 1 : 0;
+    paths += `<path d="M ${pt(a0, R)} A ${R} ${R} 0 ${lg} 1 ${pt(a1, R)} L ${pt(a1, r0)} A ${r0} ${r0} 0 ${lg} 0 ${pt(a0, r0)} Z" fill="${col}" stroke="var(--surface)" stroke-width="1.5">${tt}</path>`;
+    a0 = a1;
+  });
+  const center = `<text x="${cx}" y="${cy - 4}" text-anchor="middle" class="pc1">${compact(tot, m)}</text><text x="${cx}" y="${cy + 13}" text-anchor="middle" class="pc2">total</text>`;
+  return `<div class="pie"><svg viewBox="0 0 220 220" role="img" aria-label="Gráfico de torta: ${esc(MEDS[m])}">${paths}${center}</svg>
+    <ul>${top.map((g, i) => { const v = medVal(g, m); return `<li><i style="background:${g.otros ? "var(--c8)" : PAL(i)}"></i><span class="k">${esc(g.k)}</span><span class="v">${medTxt(v, m)}</span><span class="v">${nf(v / tot * 100, 1)}%</span></li>`; }).join("")}</ul></div>`;
+}
+function monthChart(rows, fn, m) {
+  const months = uniq(rows.map(r => (r.fecha || "").slice(0, 7)).filter(x => /^\d{4}-\d{2}$/.test(x))).sort().slice(-12);
+  if (!months.length) return `<p class="muted" style="margin:0">Sin fechas para graficar con este filtro.</p>`;
+  const top = topN(groupBy(rows, fn), m, 7), keys = top.filter(g => !g.otros).map(g => g.k), hasO = top.some(g => g.otros);
+  const series = [...keys, ...(hasO ? ["Otros"] : [])];
+  const cell = {}; series.forEach(s => cell[s] = {});
+  for (const r of rows) {
+    const mo = (r.fecha || "").slice(0, 7); if (!months.includes(mo)) continue;
+    let k = fn(r) || "Sin dato"; if (!keys.includes(k)) k = "Otros"; if (!cell[k]) continue;
+    const c = cell[k][mo] || (cell[k][mo] = { n: 0, ent: 0, rep: 0, val: 0 });
+    c.n++; c.ent += +r.entregada || 0; c.rep += +r.repuesta || 0; c.val += valorNeto(r);
+  }
+  const V = (s, mo) => { const c = cell[s][mo]; if (!c) return null; return medVal({ ...c, p: pctOf(c.rep, c.ent) }, m); };
+  const isP = m === "p", col = s => s === "Otros" ? "var(--c8)" : PAL(series.indexOf(s));
+  const W = 640, H = 250, L = 52, Rm = 12, T = 12, B = 34, iw = W - L - Rm, ih = H - T - B, step = iw / months.length;
+  const maxV = isP ? Math.max(...series.flatMap(s => months.map(mo => V(s, mo) || 0)), 0) : Math.max(...months.map(mo => series.reduce((a, s) => a + (V(s, mo) || 0), 0)), 0);
+  const top_ = maxV > 0 ? maxV * 1.08 : 1, y = v => T + ih - v / top_ * ih;
+  let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(MEDS[m])} por mes">`;
+  [0, .25, .5, .75, 1].forEach(f => { const v = top_ * f; svg += `<line class="gl" x1="${L}" x2="${W - Rm}" y1="${y(v)}" y2="${y(v)}"/><text x="${L - 6}" y="${y(v) + 3}" text-anchor="end">${compact(v, m)}</text>`; });
+  months.forEach((mo, i) => {
+    const cx = L + step * i + step / 2, [yy, mm] = mo.split("-");
+    svg += `<text x="${cx}" y="${H - 16}" text-anchor="middle">${MESES[+mm - 1]}</text><text x="${cx}" y="${H - 4}" text-anchor="middle">${yy.slice(2)}</text>`;
+    if (!isP) {
+      const bw = Math.min(36, step * 0.62); let acc = 0;
+      series.forEach(s => { const v = V(s, mo) || 0; if (!v) return; const y1 = y(acc + v), y0 = y(acc); svg += `<rect x="${cx - bw / 2}" y="${y1}" width="${bw}" height="${Math.max(y0 - y1, 1)}" fill="${col(s)}"><title>${esc(s)} · ${MESES[+mm - 1]} ${yy}: ${medTxt(v, m)}</title></rect>`; acc += v; });
+    }
+  });
+  if (isP) series.forEach(s => {
+    const pts = months.map((mo, i) => [L + step * i + step / 2, V(s, mo)]).filter(p => p[1] != null);
+    if (pts.length > 1) svg += `<polyline points="${pts.map(p => p[0] + "," + y(p[1])).join(" ")}" fill="none" stroke="${col(s)}" stroke-width="2"/>`;
+    pts.forEach(p => svg += `<circle cx="${p[0]}" cy="${y(p[1])}" r="3.5" fill="${col(s)}"><title>${esc(s)}: ${pctTxt(p[1])}</title></circle>`);
+  });
+  svg += `</svg>`;
+  const tbl = `<details><summary>Ver tabla</summary><div class="tbl"><table><thead><tr><th>Serie</th>${months.map(mo => `<th>${MESES[+mo.slice(5) - 1]} ${mo.slice(2, 4)}</th>`).join("")}</tr></thead><tbody>${series.map(s => `<tr><td>${esc(s)}</td>${months.map(mo => { const v = V(s, mo); return `<td class="n">${v == null ? "—" : medTxt(v, m)}</td>`; }).join("")}</tr>`).join("")}</tbody></table></div></details>`;
+  return `<div class="legend">${series.map(s => `<span><i style="background:${col(s)}"></i>${esc(s === "Otros" ? `Otros (${top.find(g => g.otros)?.k.match(/\d+/)?.[0] || ""})` : s)}</span>`).join("")}</div><div class="mchart">${svg}</div>${tbl}`;
+}
+function reportPanel(rows) {
+  const [dimName, fn] = DIMS[RP.by] || DIMS.zona, m = MEDS[RP.med] ? RP.med : "rep";
+  const pieOk = RP.vista === "agr" && m !== "p", tipo = pieOk ? RP.tipo : "barras";
+  const sel = (id, label, key, obj, dis) => `<div class="field"><label for="${id}">${label}</label><select id="${id}" data-rp="${key}" ${dis ? "disabled" : ""}>${Object.entries(obj).map(([k, v]) => `<option value="${k}" ${(key === "tipo" ? tipo : RP[key]) === k ? "selected" : ""}>${esc(v)}</option>`).join("")}</select></div>`;
+  const groups = groupBy(rows, fn);
+  let body;
+  if (!rows.length) body = `<p class="muted" style="margin:0">Sin datos para este filtro.</p>`;
+  else if (RP.vista === "mes") body = monthChart(rows, fn, m);
+  else if (tipo === "torta") body = pieChart(groups, m) + table(groups, dimName);
+  else body = bars(groups, m, 15) + table(groups, dimName);
+  return `<div class="panel rpanel"><h3>${ico("chart")}Reporte gráfico</h3>
+    <div class="rpctl">
+      ${sel("rp-by", "Agrupar por", "by", Object.fromEntries(Object.entries(DIMS).map(([k, v]) => [k, v[0]])))}
+      ${sel("rp-vista", "Vista", "vista", { agr: "Agrupado (total)", mes: "Por mes" })}
+      ${sel("rp-med", "Medida", "med", MEDS)}
+      ${sel("rp-tipo", "Gráfico", "tipo", { barras: "Barras", torta: "Torta" }, !pieOk)}
+    </div>
+    ${!pieOk && RP.tipo === "torta" ? `<p class="muted small" style="margin:0">La torta está disponible en la vista Agrupado y para plantas o valor; el % se muestra en barras.</p>` : ""}
+    ${body}
+    <p class="muted small rpnote">Valor repuesto = plantas repuestas × precio de venta: $${P_BASE} + IVA por planta; Artesia, Alturas, Adelanto, Belvedere, Castaic y Carpinteria $${P_ALTO} + IVA. IVA ${IVA * 100}%.</p>
+  </div>`;
+}
 function viewRes() {
   if (!S.loaded) return `<section class="view"><p class="muted">Cargando…</p></section>`;
   const rows = filtRows(), all = shownRows(), f = S.f;
-  const T = rows.reduce((s, r) => ({ ent: s.ent + (+r.entregada || 0), rep: s.rep + (+r.repuesta || 0) }), { ent: 0, rep: 0 });
+  const T = rows.reduce((s, r) => ({ ent: s.ent + (+r.entregada || 0), rep: s.rep + (+r.repuesta || 0), val: s.val + valorNeto(r) }), { ent: 0, rep: 0, val: 0 });
+  const regiones = uniq(all.map(r => regionR(r))).sort((a, b) => a.localeCompare(b, "es"));
+  const sectores = uniq(all.map(r => r.sector || "Sin sector")).sort((a, b) => a.localeCompare(b, "es"));
   const prods = uniq(all.map(r => r.productor)).sort((a, b) => a.localeCompare(b, "es"));
   const regs = uniq(all.map(r => r.registradoPor || "Sin registrador")).sort((a, b) => a.localeCompare(b, "es"));
   const vars = uniq(all.map(r => r.variedad)).sort((a, b) => a.localeCompare(b, "es"));
@@ -708,8 +846,10 @@ function viewRes() {
       <div class="field"><label for="r-desde">Desde</label><input type="date" id="r-desde" data-f="desde" value="${esc(f.desde)}"></div>
       <div class="field"><label for="r-hasta">Hasta</label><input type="date" id="r-hasta" data-f="hasta" value="${esc(f.hasta)}"></div>
       <div class="field"><label for="r-zona">Zona</label><select id="r-zona" data-f="zona">${opt(zonas, f.zona, "Todas")}</select></div>
+      <div class="field"><label for="r-region">Región</label><select id="r-region" data-f="region">${opt(regiones, f.region, "Todas")}</select></div>
       <div class="field"><label for="r-var">Variedad</label><select id="r-var" data-f="variedad">${opt(vars, f.variedad, "Todas")}</select></div>
       <div class="field"><label for="r-prod">Productor</label><select id="r-prod" data-f="productor">${opt(prods, f.productor, "Todos")}</select></div>
+      <div class="field"><label for="r-sector">Sector</label><select id="r-sector" data-f="sector">${opt(sectores, f.sector, "Todos")}</select></div>
       <div class="field"><label for="r-reg">Registrado por</label><select id="r-reg" data-f="registrador">${opt(regs, f.registrador, "Todos")}</select></div>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -722,8 +862,10 @@ function viewRes() {
     <div class="kpi"><span>Repuestas</span><b>${nf(T.rep)}</b></div>
     <div class="kpi hl"><span>% reposición</span><b>${pctTxt(pctOf(T.rep, T.ent))}</b></div>
     <div class="kpi"><span>Productores</span><b>${uniq(rows.map(r => r.productor)).length}</b></div>
+    <div class="kpi val"><span>Valor repuesto c/IVA</span><b>${clp(T.val * (1 + IVA))}</b><small>Neto ${clp(T.val)}</small></div>
   </div>
   ${rows.length && motTop ? `<p class="muted" style="margin:0">El motivo con más plantas repuestas es <b style="color:var(--ink)">${esc(motTop.k)}</b> (${nf(motTop.rep)} plantas, ${nf(motTop.rep / (T.rep || 1) * 100, 0)}% del total repuesto).</p>` : ""}
+  ${reportPanel(rows)}
   <div class="panel"><h3>${ico("chart")}Evolución mensual</h3>${trend(rows)}</div>
   <div class="rgrid">
   ${block("mot", "Por motivo", groupBy(rows, r => r.motivo), "Motivo")}
@@ -732,6 +874,7 @@ function viewRes() {
   ${block("prod", "Por productor", groupBy(rows, r => r.productor), "Productor")}
   ${block("sec", "Por sector", groupBy(rows, r => r.sector ? (f.productor ? r.sector : `${r.sector} · ${r.productor}`) : "Sin sector"), "Sector", `<p class="muted small" style="margin:0">${f.productor ? "Sectores del productor elegido." : "Cada sector se muestra con su productor. Filtra por productor para ver solo sus sectores."}</p>`)}
   ${block("zona", "Por zona", groupBy(rows, r => zonaR(r)), "Zona")}
+  ${block("regn", "Por región", groupBy(rows, r => regionR(r)), "Región")}
   ${block("reg", "Por registrador", groupBy(rows, r => r.registradoPor || "Sin registrador"), "Registrado por", `<p class="muted small" style="margin:0">Reposiciones cargadas por cada persona.</p>`)}
   </div>
   ${sheetPanel()}
@@ -834,39 +977,40 @@ function excelLibro(rows) {
   const det = rows.slice().sort((a, b) => (a.fecha || "").localeCompare(b.fecha || "") || String(a.productor).localeCompare(String(b.productor), "es"));
   const n = det.length;
   const detalle = {
-    name: "Reposiciones", freeze: 1, filter: `A1:M${Math.max(n + 1, 2)}`,
-    cols: [12, 34, 14, 16, 12, 26, 18, 12, 12, 11, 36, 18, 12],
-    rows: [["Fecha", "Productor", "Zona", "Variedad", "Fotoperíodo", "Motivo", "Sector", "Entregadas", "Repuestas", "% reposición", "Observaciones", "Registrado por", "N° guía"].map(H),
+    name: "Reposiciones", freeze: 1, filter: `A1:R${Math.max(n + 1, 2)}`,
+    cols: [12, 34, 14, 16, 12, 26, 18, 12, 12, 11, 36, 18, 12, 18, 12, 14, 12, 14],
+    rows: [["Fecha", "Productor", "Zona", "Variedad", "Fotoperíodo", "Motivo", "Sector", "Entregadas", "Repuestas", "% reposición", "Observaciones", "Registrado por", "N° guía", "Región", "Precio neto unit.", "Valor neto", "IVA 19%", "Valor total"].map(H),
       ...det.map((r, i) => { const d = xlDate(r.fecha); return [d != null ? { v: d, s: 2 } : (r.fecha || ""), r.productor, zonaR(r), r.variedad, fotoper(r.variedad), r.motivo, r.sector || "",
-        { v: +r.entregada || 0, s: 3 }, { v: +r.repuesta || 0, s: 3 }, { f: `IF(H${i + 2}>0,I${i + 2}/H${i + 2},"")`, s: 4 }, r.obs || "", r.registradoPor || "", r.guia || ""]; })]
+        { v: +r.entregada || 0, s: 3 }, { v: +r.repuesta || 0, s: 3 }, { f: `IF(H${i + 2}>0,I${i + 2}/H${i + 2},"")`, s: 4 }, r.obs || "", r.registradoPor || "", r.guia || "", regionR(r), { v: precioNeto(r.variedad), s: 3 }, { f: `I${i + 2}*O${i + 2}`, s: 3 }, { f: `ROUND(P${i + 2}*0.19,0)`, s: 3 }, { f: `P${i + 2}+Q${i + 2}`, s: 3 }]; })]
   };
-  if (n) detalle.rows.push(["Total", "", "", "", "", "", "", { f: `SUBTOTAL(9,H2:H${n + 1})`, s: 7 }, { f: `SUBTOTAL(9,I2:I${n + 1})`, s: 7 }, { f: `IF(H${n + 2}>0,I${n + 2}/H${n + 2},"")`, s: 8 }, "", "", ""].map((c, i) => i === 0 ? { v: c, s: 6 } : (c === "" ? { v: "", s: 6 } : c)));
-  const res = { name: "Resumen", cols: [34, 12, 14, 14, 13], rows: [] };
+  if (n) detalle.rows.push(["Total", "", "", "", "", "", "", { f: `SUBTOTAL(9,H2:H${n + 1})`, s: 7 }, { f: `SUBTOTAL(9,I2:I${n + 1})`, s: 7 }, { f: `IF(H${n + 2}>0,I${n + 2}/H${n + 2},"")`, s: 8 }, "", "", "", "", "", { f: `SUBTOTAL(9,P2:P${n + 1})`, s: 7 }, { f: `SUBTOTAL(9,Q2:Q${n + 1})`, s: 7 }, { f: `SUBTOTAL(9,R2:R${n + 1})`, s: 7 }].map((c, i) => i === 0 ? { v: c, s: 6 } : (c === "" ? { v: "", s: 6 } : c)));
+  const res = { name: "Resumen", cols: [34, 12, 14, 14, 13, 16], rows: [] };
   const R = res.rows;
   const fechas = det.map(r => r.fecha).filter(Boolean);
   R.push([{ v: "Reposiciones de plantas · Agrícola Llahuen", s: 5 }]);
   R.push([`Generado el ${fmtD(todayISO())}` + (fechas.length ? ` · registros del ${fmtD(fechas[0])} al ${fmtD(fechas[fechas.length - 1])}` : "")]);
   R.push([]);
-  const T = det.reduce((s, r) => ({ e: s.e + (+r.entregada || 0), p: s.p + (+r.repuesta || 0) }), { e: 0, p: 0 });
-  R.push([H("Total general"), H("Registros"), H("Entregadas"), H("Repuestas"), H("% reposición")]);
-  R.push([{ v: "Todas las reposiciones", s: 6 }, { v: n, s: 7 }, { v: T.e, s: 7 }, { v: T.p, s: 7 }, { v: T.e ? T.p / T.e : 0, s: 8 }]);
-  const blocks = [["Por variedad", r => r.variedad], ["Por motivo", r => r.motivo], ["Por productor", r => r.productor], ["Por zona", r => zonaR(r)], ["Por registrador", r => r.registradoPor || "Sin registrador"],
+  const T = det.reduce((s, r) => ({ e: s.e + (+r.entregada || 0), p: s.p + (+r.repuesta || 0), v: s.v + valorNeto(r) }), { e: 0, p: 0, v: 0 });
+  R.push([H("Total general"), H("Registros"), H("Entregadas"), H("Repuestas"), H("% reposición"), H("Valor c/IVA")]);
+  R.push([{ v: "Todas las reposiciones", s: 6 }, { v: n, s: 7 }, { v: T.e, s: 7 }, { v: T.p, s: 7 }, { v: T.e ? T.p / T.e : 0, s: 8 }, { v: Math.round(T.v * (1 + IVA)), s: 7 }]);
+  const blocks = [["Por variedad", r => r.variedad], ["Por motivo", r => r.motivo], ["Por productor", r => r.productor], ["Por zona", r => zonaR(r)], ["Por región", r => regionR(r)], ["Por registrador", r => r.registradoPor || "Sin registrador"],
     ["Por sector", r => r.sector ? `${r.sector} · ${r.productor}` : "Sin sector"], ["Por mes", r => (r.fecha || "").slice(0, 7) || "Sin fecha"]];
   for (const [title, fn] of blocks) {
     let g = groupBy(det, fn);
     g = title === "Por mes" ? g.sort((a, b) => a.k.localeCompare(b.k)).map(x => ({ ...x, k: /^\d{4}-\d{2}$/.test(x.k) ? MESES[+x.k.slice(5) - 1] + " " + x.k.slice(0, 4) : x.k })) : g.sort((a, b) => b.rep - a.rep);
     R.push([]);
-    R.push([H(title), H("Registros"), H("Entregadas"), H("Repuestas"), H("% reposición")]);
-    g.forEach(x => R.push([x.k, { v: x.n, s: 3 }, { v: x.ent, s: 3 }, { v: x.rep, s: 3 }, { v: x.ent ? x.rep / x.ent : 0, s: 4 }]));
+    R.push([H(title), H("Registros"), H("Entregadas"), H("Repuestas"), H("% reposición"), H("Valor c/IVA")]);
+    g.forEach(x => R.push([x.k, { v: x.n, s: 3 }, { v: x.ent, s: 3 }, { v: x.rep, s: 3 }, { v: x.ent ? x.rep / x.ent : 0, s: 4 }, { v: Math.round(x.val * (1 + IVA)), s: 3 }]));
   }
   R.push([]);
   R.push(["% reposición = plantas repuestas ÷ plantas entregadas, calculado sobre la suma de plantas."]);
+  R.push([`Valor = plantas repuestas × precio de venta: $${P_BASE} + IVA; Artesia, Alturas, Adelanto, Belvedere, Castaic y Carpinteria $${P_ALTO} + IVA.`]);
   return buildXlsx([detalle, res]);
 }
 async function exportExcel() {
   const rows = filtRows().filter(r => !r._ej);
   if (!rows.length) { toast("No hay reposiciones para exportar con este filtro."); return; }
-  const blob = excelLibro(rows), f = S.f, filtrado = f.desde || f.hasta || f.zona || f.variedad || f.productor || f.registrador;
+  const blob = excelLibro(rows), f = S.f, filtrado = f.desde || f.hasta || f.zona || f.variedad || f.productor || f.registrador || f.region || f.sector;
   const filename = `reposiciones-llahuen-${todayISO()}${filtrado ? "-filtrado" : ""}.xlsx`;
   if (!S.dl) { toast("En esta vista el teléfono no permite descargar archivos."); return; }
   try { await S.dl.save({ filename, data: blob }); if (!(window.claude && window.claude.use)) toast(`Excel descargado: ${rows.length} reposiciones`); }
@@ -893,8 +1037,8 @@ async function importDir(file) {
   toast(`Directorio cargado: ${dr.length} productores`);
 }
 async function exportCsv() {
-  const head = ["Fecha", "Productor", "Zona", "Variedad", "Fotoperíodo", "Motivo", "Sector", "Plantas entregadas", "Plantas repuestas", "% reposición", "Observaciones", "Registrado por", "N° guía"];
-  const rows = filtRows().filter(r => !r._ej).sort((a, b) => a.fecha.localeCompare(b.fecha)).map(r => [r.fecha, r.productor, zonaR(r), r.variedad, fotoper(r.variedad), r.motivo, r.sector, r.entregada, r.repuesta, (pctOf(+r.repuesta, +r.entregada) ?? 0).toFixed(1).replace(".", ","), r.obs, r.registradoPor || "", r.guia || ""]);
+  const head = ["Fecha", "Productor", "Zona", "Variedad", "Fotoperíodo", "Motivo", "Sector", "Plantas entregadas", "Plantas repuestas", "% reposición", "Observaciones", "Registrado por", "N° guía", "Región", "Precio neto unit.", "Valor neto", "IVA 19%", "Valor total"];
+  const rows = filtRows().filter(r => !r._ej).sort((a, b) => a.fecha.localeCompare(b.fecha)).map(r => [r.fecha, r.productor, zonaR(r), r.variedad, fotoper(r.variedad), r.motivo, r.sector, r.entregada, r.repuesta, (pctOf(+r.repuesta, +r.entregada) ?? 0).toFixed(1).replace(".", ","), r.obs, r.registradoPor || "", r.guia || "", regionR(r), precioNeto(r.variedad), valorNeto(r), Math.round(valorNeto(r) * IVA), Math.round(valorNeto(r) * (1 + IVA))]);
   const csv = "﻿" + [head, ...rows].map(l => l.map(c => { const s = String(c ?? ""); return /[;"\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; }).join(";")).join("\r\n");
   await giveFile(`reposiciones-llahuen-${todayISO()}.csv`, csv, "text/csv");
 }
@@ -927,6 +1071,7 @@ document.addEventListener("input", e => {
 });
 document.addEventListener("change", e => {
   const t = e.target;
+  if (t.dataset.rp) { RP[t.dataset.rp] = t.value; try { localStorage.setItem("llahuen-repo-rp", JSON.stringify(RP)); } catch (x) { } render(); }
   if (t.dataset.f) { S.f[t.dataset.f] = t.value; render(); }
   if (t.id === "t-nombre") { CFG = { nombre: t.value.trim() }; lsSet(CFGKEY, CFG); toast("Nombre guardado"); }
   if (t.id === "imp" && t.files && t.files[0]) { importBackup(t.files[0]); t.value = ""; }
@@ -960,7 +1105,7 @@ document.addEventListener("click", async e => {
   if (a === "per") setPeriod(b.dataset.p);
   if (a === "csv") exportCsv();
   if (a === "xlsx") exportExcel();
-  if (a === "xlsx-all") { S.f = { desde: "", hasta: "", zona: "", variedad: "", productor: "", registrador: "" }; exportExcel(); }
+  if (a === "xlsx-all") { S.f = { desde: "", hasta: "", zona: "", variedad: "", productor: "", registrador: "", region: "", sector: "" }; exportExcel(); }
   if (a === "backup") exportBackup();
   if (a === "s-sync") { setSync("off", "sincronizando…"); flushSheet(); }
   if (a === "cb-close") $("#copybox").hidden = true;
