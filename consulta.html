@@ -656,7 +656,7 @@ function filtRows() {
   const f = S.f;
   return shownRows().filter(r => (!f.desde || r.fecha >= f.desde) && (!f.hasta || r.fecha <= f.hasta) && (!f.zona || zonaR(r) === f.zona)
     && (!f.variedad || r.variedad === f.variedad) && (!f.productor || r.productor === f.productor) && (!f.registrador || (r.registradoPor || "Sin registrador") === f.registrador)
-    && (!f.region || regionR(r) === f.region) && (!f.sector || (r.sector || "Sin sector") === f.sector));
+    && (!f.region || regionR(r) === f.region) && (!f.sector || secK(r) === f.sector));
 }
 function groupBy(rows, keyFn) {
   const m = new Map();
@@ -722,6 +722,7 @@ const VAR_ALTO = ["Artesia", "Alturas", "Altura", "Adelanto", "Belvedere", "Cast
 const precioNeto = v => VAR_ALTO.includes(nrm(v)) ? P_ALTO : P_BASE;
 const valorNeto = r => (+r.repuesta || 0) * precioNeto(r.variedad);
 const clp = n => "$" + nf(Math.round(n || 0));
+const secK = r => String(r.sector || "").trim().toUpperCase() || "Sin sector";
 const compact = (v, m) => {
   if (m === "p") return nf(v, v < 10 && v % 1 ? 1 : 0) + "%";
   const s = m === "clp" ? "$" : "", a = Math.abs(v);
@@ -731,7 +732,7 @@ const compact = (v, m) => {
 };
 const DIMS = {
   zona: ["Zona", r => zonaR(r)], region: ["Región", r => regionR(r)], productor: ["Productor", r => r.productor],
-  variedad: ["Variedad", r => r.variedad], sector: ["Sector", r => r.sector ? `${r.sector} · ${r.productor}` : "Sin sector"],
+  variedad: ["Variedad", r => r.variedad], sector: ["Sector", r => secK(r)],
   motivo: ["Motivo", r => r.motivo], registrador: ["Registrado por", r => r.registradoPor || "Sin registrador"]
 };
 const MEDS = { rep: "Plantas repuestas", ent: "Plantas entregadas", p: "% reposición", clp: "Valor repuesto (CLP con IVA)" };
@@ -830,7 +831,7 @@ function viewRes() {
   const rows = filtRows(), all = shownRows(), f = S.f;
   const T = rows.reduce((s, r) => ({ ent: s.ent + (+r.entregada || 0), rep: s.rep + (+r.repuesta || 0), val: s.val + valorNeto(r) }), { ent: 0, rep: 0, val: 0 });
   const regiones = uniq(all.map(r => regionR(r))).sort((a, b) => a.localeCompare(b, "es"));
-  const sectores = uniq(all.map(r => r.sector || "Sin sector")).sort((a, b) => a.localeCompare(b, "es"));
+  const sectores = uniq(all.map(r => secK(r))).sort((a, b) => a.localeCompare(b, "es"));
   const prods = uniq(all.map(r => r.productor)).sort((a, b) => a.localeCompare(b, "es"));
   const regs = uniq(all.map(r => r.registradoPor || "Sin registrador")).sort((a, b) => a.localeCompare(b, "es"));
   const vars = uniq(all.map(r => r.variedad)).sort((a, b) => a.localeCompare(b, "es"));
@@ -872,7 +873,7 @@ function viewRes() {
   ${block("var", "Por variedad", groupBy(rows, r => r.variedad), "Variedad",
     ft.length ? `<p class="muted small" style="margin:0">${ft.map(x => `${esc(x.k)}: ${pctTxt(x.p)}`).join(" · ")}</p>` : "")}
   ${block("prod", "Por productor", groupBy(rows, r => r.productor), "Productor")}
-  ${block("sec", "Por sector", groupBy(rows, r => r.sector ? (f.productor ? r.sector : `${r.sector} · ${r.productor}`) : "Sin sector"), "Sector", `<p class="muted small" style="margin:0">${f.productor ? "Sectores del productor elegido." : "Cada sector se muestra con su productor. Filtra por productor para ver solo sus sectores."}</p>`)}
+  ${block("sec", "Por sector", groupBy(rows, r => secK(r)), "Sector")}
   ${block("zona", "Por zona", groupBy(rows, r => zonaR(r)), "Zona")}
   ${block("regn", "Por región", groupBy(rows, r => regionR(r)), "Región")}
   ${block("reg", "Por registrador", groupBy(rows, r => r.registradoPor || "Sin registrador"), "Registrado por", `<p class="muted small" style="margin:0">Reposiciones cargadas por cada persona.</p>`)}
@@ -994,7 +995,7 @@ function excelLibro(rows) {
   R.push([H("Total general"), H("Registros"), H("Entregadas"), H("Repuestas"), H("% reposición"), H("Valor c/IVA")]);
   R.push([{ v: "Todas las reposiciones", s: 6 }, { v: n, s: 7 }, { v: T.e, s: 7 }, { v: T.p, s: 7 }, { v: T.e ? T.p / T.e : 0, s: 8 }, { v: Math.round(T.v * (1 + IVA)), s: 7 }]);
   const blocks = [["Por variedad", r => r.variedad], ["Por motivo", r => r.motivo], ["Por productor", r => r.productor], ["Por zona", r => zonaR(r)], ["Por región", r => regionR(r)], ["Por registrador", r => r.registradoPor || "Sin registrador"],
-    ["Por sector", r => r.sector ? `${r.sector} · ${r.productor}` : "Sin sector"], ["Por mes", r => (r.fecha || "").slice(0, 7) || "Sin fecha"]];
+    ["Por sector", r => secK(r)], ["Por mes", r => (r.fecha || "").slice(0, 7) || "Sin fecha"]];
   for (const [title, fn] of blocks) {
     let g = groupBy(det, fn);
     g = title === "Por mes" ? g.sort((a, b) => a.k.localeCompare(b.k)).map(x => ({ ...x, k: /^\d{4}-\d{2}$/.test(x.k) ? MESES[+x.k.slice(5) - 1] + " " + x.k.slice(0, 4) : x.k })) : g.sort((a, b) => b.rep - a.rep);
